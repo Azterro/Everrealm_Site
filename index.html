@@ -6,18 +6,35 @@
   <title>EverRealm</title>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
+    body, html {
       margin: 0;
+      padding: 0;
       font-family: 'Rubik', sans-serif;
-      background: linear-gradient(to bottom right, #121212, #1e1e1e);
-      color: #ffffff;
+	  background-color: #1e1e1e;
+      scroll-behavior: smooth;
+    }
+
+    .hero {
+      background-image: url('assets/images/EverRealm_preview.jpg');
+      height: 100vh;
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
       text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    .overlay {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 700px;
     }
 
     h1 {
@@ -27,15 +44,6 @@
 
     p.description {
       font-size: 1.25rem;
-      max-width: 600px;
-      margin-bottom: 2rem;
-    }
-
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
       margin-bottom: 2rem;
     }
 
@@ -69,27 +77,44 @@
       background-color: #1f6feb;
     }
 
+    .content {
+      padding: 4rem 2rem;
+      background-color: #1e1e1e;
+      color: white;
+      text-align: center;
+    }
+
     footer {
-      margin-top: 3rem;
-      font-size: 0.85rem;
-      color: #888;
+		footer {
+		margin-top: 3rem;
+		font-size: 0.85rem;
+		color: #888;
+		background-color: #1e1e1e; /* <-- Set this explicitly */
+		padding: 1rem 0;
+		text-align: center;
+	}
+
     }
   </style>
 </head>
 <body>
-  <h1>EverRealm</h1>
-  <p class="description">A medieval voxel RPG where you build kingdoms, conquer cities, and lead armies — one block at a time.</p>
-  <img src="assets/images/EverRealm_preview.jpg" alt="Game Screenshot Placeholder" />
-  <div class="links">
-    <a href="https://x.com/EverRealmGame">Twitter</a>
-    <a href="https://soundcloud.com/everrealmofficial">Soundcloud</a>
-  </div>
-  <!<form class="email-form" action="https://formspree.io/f/yourformid" method="POST">
-    <!<input type="email" name="email" placeholder="Get email updates" required />
-    <!<button type="submit"><!Subscribe</button>
-  <!</form>
+  <section class="hero">
+    <div class="overlay">
+      <h1>EverRealm</h1>
+      <p class="description">A medieval voxel RPG where you build kingdoms, conquer cities, and lead armies — one block at a time.</p>
+      <div class="links">
+        <a href="https://x.com/EverRealmGame">Twitter</a>
+        <a href="https://soundcloud.com/everrealmofficial">Soundcloud</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <p>More information coming soon. Stay tuned for updates!</p>
+  </section>
+
   <footer>
-    &copy; EverRealm. All rights reserved.
+    &copy; EverRealm. All rights reserved
   </footer>
 </body>
 </html>
