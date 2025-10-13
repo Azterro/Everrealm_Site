@@ -1,263 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Minecraft Skin Editor (3D + Painting)</title>
+
+
+	<!--
+	-->
+	<script type="importmap">
+	{
+	  "imports": {
+		"three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+		"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+	  }
+	}
+	</script>
+
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skin Editor</title>
   <style>
-    :root{
-      --bg:#0b0f14;--card:#121821;--muted:#9fb0c3;--text:#e6eef7;--accent:#67b0ff;--accent-2:#8bd17c;--danger:#ff6b6b;
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: #222;
+      color: #eee;
+      font-family: sans-serif;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial; color:var(--text); background:radial-gradient(1200px 1200px at 110% -10%, #102033 0%, #0b0f14 55%);}    
-    .app{display:grid; grid-template-columns: 380px 1fr; gap:16px; height:100%; padding:16px}
-    .panel{background:var(--card); border:1px solid #1e293b; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35);}
-    .tools{display:flex; flex-wrap:wrap; gap:8px; padding:12px; border-bottom:1px solid #1e293b}
-    .tools .group{display:flex; gap:8px; align-items:center}
-    .tools label{font-size:12px; color:var(--muted)}
-    .btn{appearance:none;border:1px solid #223247; background:#0f1622; color:var(--text); padding:8px 10px; border-radius:10px; cursor:pointer; font-size:13px; transition:.15s;}
-    .btn:hover{border-color:#2d425f; background:#142033}
-    .btn.primary{border-color:#264a78;background:#133156}
-    .btn.accent{border-color:#2e6aa0;background:#0f2440}
-    .btn.danger{border-color:#7a2c2c;background:#2a1111}
-    .btn.toggled{outline:2px solid var(--accent)}
-    .number{width:64px}
-    .canvas-wrap{padding:12px; display:flex; justify-content:center; align-items:center}
-    #skinCanvas{image-rendering: pixelated; width:320px; height:320px; border:1px solid #273244; border-radius:8px; background:#0a0f16}
-    .viewer{position:relative; overflow:hidden;}
-    #view3d{width:100%; height:100%; display:block}
-    .viewer .hud{position:absolute; top:10px; left:10px; display:flex; gap:8px}
-    .status{padding:6px 9px; border-radius:999px; background:#0f1622; border:1px solid #223247; color:var(--muted); font-size:12px}
-    .footer{display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-top:1px solid #1e293b; color:var(--muted); font-size:12px}
-    @media (max-width: 980px){ .app{grid-template-columns:1fr; grid-auto-rows: minmax(0, auto);} .viewer{height:420px} }
-    @media (min-width: 981px){ .viewer{min-height: calc(100vh - 32px);} }
+    #leftPanel {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #333;
+      border-right: 2px solid #444;
+    }
+    #rightPanel {
+      width: 50%;
+      position: relative;
+    }
+    #skinCanvas {
+      image-rendering: pixelated;
+      background: #555;
+      border: 1px solid #666;
+      cursor: crosshair;
+    }
+    #controls {
+      margin-top: 10px;
+    }
+    #controls input[type="color"] {
+      width: 50px;
+      height: 30px;
+      border: none;
+      outline: none;
+    }
+    button {
+      margin: 0 4px;
+      background: #444;
+      color: #eee;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #666;
+    }
+    canvas {
+      touch-action: none;
+    }
   </style>
 </head>
 <body>
-<div class="app">
-  <!-- Left: 2D painting panel -->
-  <section class="panel" aria-label="2D Skin Painter">
-    <div class="tools">
-      <div class="group">
-        <input type="color" id="color" value="#ff4757" title="Brush color" />
-        <label for="size">Size</label>
-        <input class="number" type="number" id="size" min="1" max="16" step="1" value="1" />
-        <button class="btn" id="mirror">Mirror X</button>
-        <button class="btn" id="grid">Grid</button>
-      </div>
-      <div class="group">
-        <button class="btn" id="eyedrop">Eyedrop (E)</button>
-        <button class="btn" id="eraser">Eraser</button>
-        <button class="btn" id="undo" title="Undo (Ctrl+Z)">Undo</button>
-        <button class="btn" id="redo" title="Redo (Ctrl+Y)">Redo</button>
-      </div>
-      <div class="group">
-        <input class="btn" type="file" id="file" accept="image/png" />
-        <button class="btn primary" id="save">Save PNG</button>
-        <button class="btn accent" id="clear">Clear</button>
-      </div>
+  <div id="leftPanel">
+    <canvas id="skinCanvas" width="64" height="64"></canvas>
+    <div id="controls">
+      <input type="color" id="colorPicker" value="#ffffff" />
+      <button id="clearBtn">Clear</button>
+      <button id="saveBtn">Save PNG</button>
+      <input type="file" id="loadInput" accept="image/png" style="display:none">
+      <button id="loadBtn">Load PNG</button>
     </div>
-    <div class="canvas-wrap">
-      <canvas id="skinCanvas" width="64" height="64" aria-label="Skin Canvas"></canvas>
-    </div>
-    <div class="footer">
-      <span>Tip: Right‑click to pick color. Hold Shift while drawing for straight lines.</span>
-      <span id="hover">–</span>
-    </div>
-  </section>
+  </div>
 
-  <!-- Right: 3D viewer -->
-  <section class="panel viewer" aria-label="3D Skin Viewer">
-    <div class="hud">
-      <span class="status" id="autosave">Autosave: On</span>
-      <button class="btn" id="spin">Toggle Spin</button>
-      <button class="btn" id="zoomReset">Reset View</button>
-    </div>
-    <canvas id="view3d"></canvas>
-  </section>
-</div>
+  <div id="rightPanel">
+    <canvas id="preview"></canvas>
+  </div>
 
-<!-- 3D viewer via skinview3d (wraps three.js with proper Minecraft UVs) -->
-<script src="https://unpkg.com/skinview3d/bundles/skinview3d.bundle.js"></script>
-<script>
-(function(){
-  // ===== 2D Painter Setup =====
-  const canvas = document.getElementById('skinCanvas');
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  // initialize with transparent (second layer visible); fill with white skin template if you prefer
-  ctx.clearRect(0,0,64,64);
 
-  const state = {
-    color: document.getElementById('color').value,
-    size: parseInt(document.getElementById('size').value,10),
-    drawing: false,
-    erasing: false,
-    eyedrop: false,
-    mirror: false,
-    showGrid: false,
-    lastPos: null,
-    undo: [],
-    redo: [],
-  };
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    // ===== 2D PAINTING SYSTEM =====
+	//const controls = new OrbitControls (camera, renderer.domElement);
+    const canvas = document.getElementById('skinCanvas');
+    const ctx = canvas.getContext('2d');
+    const colorPicker = document.getElementById('colorPicker');
+    const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const loadInput = document.getElementById('loadInput');
+    let painting = false;
 
-  const hover = document.getElementById('hover');
-  const setStatus = (msg)=> hover.textContent = msg;
+    // Initial fill
+    ctx.fillStyle = "#aaaaaa";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  function pushUndo(){
-    try{ state.undo.push(canvas.toDataURL()); if(state.undo.length>50) state.undo.shift(); state.redo.length=0; }catch(e){}
-  }
-
-  function restore(data){
-    const img = new Image();
-    img.onload = ()=>{ ctx.clearRect(0,0,64,64); ctx.drawImage(img,0,0); updateViewerTexture(); };
-    img.src = data;
-  }
-
-  // Grid overlay (draw lazily on top using CSS/offscreen)
-  function drawGrid(){
-    const w=64,h=64; const imgData = ctx.getImageData(0,0,w,h);
-    const overlay = ctx.createImageData(w,h);
-    for(let y=0;y<h;y++){
-      for(let x=0;x<w;x++){
-        const i=(y*w+x)*4;
-        const border = (x%8===0 || y%8===0);
-        overlay.data[i+0]=border? 40:0;
-        overlay.data[i+1]=border? 60:0;
-        overlay.data[i+2]=border? 90:0;
-        overlay.data[i+3]=border? 120:0; // alpha
-      }
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: Math.floor((e.clientX - rect.left) * scaleX),
+        y: Math.floor((e.clientY - rect.top) * scaleY)
+      };
     }
-    // compose by drawing original then overlay using putImageData – but we only want it visually in 2D view
-    // Instead, we draw base data, then draw overlay onto a CSS sibling canvas; simpler: paint tick marks directly on main canvas temporarily.
-  }
 
-  function pick(x,y){
-    const d = ctx.getImageData(x,y,1,1).data;
-    const hex = `#${[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
-    document.getElementById('color').value = hex;
-    state.color = hex;
-  }
-
-  function drawDot(x,y){
-    ctx.imageSmoothingEnabled=false;
-    ctx.globalCompositeOperation = state.erasing? 'destination-out':'source-over';
-    ctx.fillStyle = state.color;
-    ctx.fillRect(x, y, state.size, state.size);
-    if(state.mirror){
-      const mx = 63 - x - (state.size-1);
-      ctx.fillRect(mx, y, state.size, state.size);
+    function paint(e) {
+      if (!painting) return;
+      const {x, y} = getMousePos(e);
+      ctx.fillStyle = colorPicker.value;
+      ctx.fillRect(x, y, 1, 1);
+      updateTexture();
     }
-  }
 
-  function line(a,b){
-    const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
-    const sx = a.x < b.x ? 1 : -1; const sy = a.y < b.y ? 1 : -1;
-    let err = dx - dy, x=a.x, y=a.y;
-    while(true){ drawDot(x,y); if(x===b.x && y===b.y) break; const e2 = 2*err; if(e2>-dy){ err-=dy; x+=sx; } if(e2<dx){ err+=dx; y+=sy; } }
-  }
+    canvas.addEventListener('mousedown', e => { painting = true; paint(e); });
+    canvas.addEventListener('mouseup', () => painting = false);
+    canvas.addEventListener('mouseleave', () => painting = false);
+    canvas.addEventListener('mousemove', paint);
 
-  function toPixel(e){
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width; 
-    const scaleY = canvas.height / rect.height;
-    let x = Math.floor((e.clientX - rect.left) * scaleX);
-    let y = Math.floor((e.clientY - rect.top) * scaleY);
-    x = Math.max(0, Math.min(63, x));
-    y = Math.max(0, Math.min(63, y));
-    return {x,y};
-  }
+    clearBtn.onclick = () => {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "#aaaaaa";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      updateTexture();
+    };
 
-  function startDraw(e){
-    e.preventDefault(); canvas.focus();
-    const pos = toPixel(e);
-    if(e.button===2 || state.eyedrop){ pick(pos.x,pos.y); state.eyedrop=false; toggleBtn(eyedropBtn,false); return; }
-    pushUndo(); state.drawing = true; state.lastPos = pos; drawDot(pos.x,pos.y); updateViewerTextureThrottled();
-  }
-  function moveDraw(e){
-    const p = toPixel(e); setStatus(`x:${p.x} y:${p.y}`);
-    if(!state.drawing) return; const withShift = e.shiftKey && state.lastPos; if(withShift){ line(state.lastPos, p); } else { line(state.lastPos, p); }
-    state.lastPos = p; updateViewerTextureThrottled();
-  }
-  function endDraw(){ if(!state.drawing) return; state.drawing=false; state.lastPos=null; updateViewerTexture(); autosave(); }
+    saveBtn.onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'skin.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    };
 
-  canvas.addEventListener('contextmenu', e=> e.preventDefault());
-  canvas.addEventListener('mousedown', startDraw);
-  canvas.addEventListener('mousemove', moveDraw);
-  window.addEventListener('mouseup', endDraw);
+    loadBtn.onclick = () => loadInput.click();
+    loadInput.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        updateTexture();
+      };
+      img.src = URL.createObjectURL(file);
+    };
 
-  // Controls
-  const sizeInput = document.getElementById('size');
-  const colorInput = document.getElementById('color');
-  const mirrorBtn = document.getElementById('mirror');
-  const gridBtn = document.getElementById('grid');
-  const eraserBtn = document.getElementById('eraser');
-  const eyedropBtn = document.getElementById('eyedrop');
-  const undoBtn = document.getElementById('undo');
-  const redoBtn = document.getElementById('redo');
-  const clearBtn = document.getElementById('clear');
-  const saveBtn = document.getElementById('save');
-  const fileInput = document.getElementById('file');
+    // ===== 3D PREVIEW =====
+    const preview = document.getElementById('preview');
+    const renderer = new THREE.WebGLRenderer({ canvas: preview, antialias: true, alpha: true });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+    camera.position.z = 5;
 
-  function toggleBtn(btn,on){ if(on){ btn.classList.add('toggled'); } else { btn.classList.remove('toggled'); } }
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    scene.add(light);
 
-  sizeInput.addEventListener('change', ()=> state.size = Math.max(1, Math.min(16, parseInt(sizeInput.value,10)||1)));
-  colorInput.addEventListener('change', ()=> state.color = colorInput.value);
-  mirrorBtn.addEventListener('click', ()=>{ state.mirror = !state.mirror; toggleBtn(mirrorBtn, state.mirror); });
-  gridBtn.addEventListener('click', ()=>{ state.showGrid = !state.showGrid; toggleBtn(gridBtn, state.showGrid); drawGrid(); });
-  eraserBtn.addEventListener('click', ()=>{ state.erasing = !state.erasing; toggleBtn(eraserBtn, state.erasing); });
-  eyedropBtn.addEventListener('click', ()=>{ state.eyedrop = !state.eyedrop; toggleBtn(eyedropBtn, state.eyedrop); });
-  document.addEventListener('keydown', (e)=>{
-    if(e.key==='e' || e.key==='E'){ state.eyedrop=!state.eyedrop; toggleBtn(eyedropBtn,state.eyedrop);}    
-    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); undoBtn.click(); }
-    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='y'){ e.preventDefault(); redoBtn.click(); }
-  });
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
 
-  undoBtn.addEventListener('click', ()=>{
-    if(!state.undo.length) return; const last = state.undo.pop(); state.redo.push(canvas.toDataURL()); restore(last);
-  });
-  redoBtn.addEventListener('click', ()=>{
-    if(!state.redo.length) return; const next = state.redo.pop(); state.undo.push(canvas.toDataURL()); restore(next);
-  });
-  clearBtn.addEventListener('click', ()=>{ pushUndo(); ctx.clearRect(0,0,64,64); updateViewerTexture(); autosave(); });
-  saveBtn.addEventListener('click', ()=>{
-    const a = document.createElement('a'); a.download = 'skin.png'; a.href = canvas.toDataURL('image/png'); a.click();
-  });
-  fileInput.addEventListener('change', (e)=>{
-    const file = e.target.files?.[0]; if(!file) return; const url = URL.createObjectURL(file);
-    const img = new Image(); img.onload = ()=>{ pushUndo(); ctx.clearRect(0,0,64,64); ctx.drawImage(img,0,0,64,64); URL.revokeObjectURL(url); updateViewerTexture(); autosave(); };
-    img.src = url;
-  });
+    const material = new THREE.MeshBasicMaterial({ map: texture });
 
-  // Autosave to localStorage
-  function autosave(){ try{ localStorage.setItem('skinCanvas', canvas.toDataURL()); }catch(e){} }
-  (function loadAutosave(){ const data = localStorage.getItem('skinCanvas'); if(data){ restore(data); } })();
+    // === Minecraft Character Model ===
+	const body = new THREE.Group();
 
-  // ===== 3D Viewer (skinview3d) =====
-  const viewCanvas = document.getElementById('view3d');
-  const viewer = new skinview3d.FXAASkinViewer({canvas: viewCanvas, width: viewCanvas.clientWidth, height: viewCanvas.clientHeight});
-  viewer.zoom = 0.9; viewer.skin = null; viewer.controls.enableZoom = true; viewer.animation = new skinview3d.CompositeAnimation();
-  const walk = viewer.animation.add(skinview3d.WalkingAnimation); walk.speed = 0.9; // subtle idle walk
-  viewer.controls.enablePan = false; viewer.autoRotate = true; viewer.autoRotateSpeed = 0.6;
+	// Shared material using the same texture
+	const skinMat = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+	skinMat.map.magFilter = THREE.NearestFilter;
+	skinMat.map.minFilter = THREE.NearestFilter;
 
-  function resize(){ const r = viewCanvas.getBoundingClientRect(); viewer.setSize(Math.floor(r.width), Math.floor(r.height)); }
-  new ResizeObserver(resize).observe(viewCanvas);
+	// Helper to make cube parts
+	function makePart(w, h, d, x, y, z) {
+	  const geom = new THREE.BoxGeometry(w, h, d);
+	  const mesh = new THREE.Mesh(geom, skinMat);
+	  mesh.position.set(x, y, z);
+	  return mesh;
+	}
 
-  function updateViewerTexture(){
-    // Easiest: reload skin from a data URL based on the canvas
-    const url = canvas.toDataURL('image/png');
-    viewer.loadSkin(url).catch(()=>{});
-  }
-  // throttle updates during drawing for perf
-  let raf = null; function updateViewerTextureThrottled(){ if(raf) return; raf = requestAnimationFrame(()=>{ raf=null; updateViewerTexture(); }); }
+	// Create main parts (sizes roughly Minecraft-proportional)
+	const head = makePart(1, 1, 1, 0, 1.5, 0);
+	const torso = makePart(1, 1.5, 0.5, 0, 0.25, 0);
+	const leftArm = makePart(0.4, 1.4, 0.4, -0.7, 0.6, 0);
+	const rightArm = makePart(0.4, 1.4, 0.4, 0.7, 0.6, 0);
+	const leftLeg = makePart(0.4, 1.4, 0.4, -0.25, -1.2, 0);
+	const rightLeg = makePart(0.4, 1.4, 0.4, 0.25, -1.2, 0);
 
-  // initial texture
-  updateViewerTexture();
+	body.add(head, torso, leftArm, rightArm, leftLeg, rightLeg);
+	scene.add(body);
 
-  // viewer HUD controls
-  document.getElementById('spin').addEventListener('click', ()=>{ viewer.autoRotate = !viewer.autoRotate; });
-  document.getElementById('zoomReset').addEventListener('click', ()=>{ viewer.camera.position.set(0, 10, 50); viewer.camera.lookAt(0, 10, 0); });
-})();
-</script>
+
+    // Resize handler
+    function resize() {
+      const size = document.getElementById('rightPanel').clientHeight;
+      renderer.setSize(size, size);
+      camera.aspect = 1;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Update texture from canvas
+    function updateTexture() {
+      texture.needsUpdate = true;
+    }
+	
+			/*
+		// ===== CAMERA CONTROLS =====
+	const controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.enableDamping = true;       // smooth motion
+	controls.dampingFactor = 0.1;
+	controls.enablePan = false;          // disable dragging the scene around
+	controls.target.set(0, 0.5, 0);      // look at character
+	controls.minDistance = 2;            // zoom limits
+	controls.maxDistance = 10;
+
+	// Animation loop
+	function animate() {
+	  requestAnimationFrame(animate);
+	  controls.update();                 // update camera interaction
+	  renderer.render(scene, camera);
+	}
+	animate();
+
+	*/
+	
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      body.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+				/*
+	*/
+  </script>
 </body>
 </html>
