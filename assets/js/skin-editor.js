@@ -71,7 +71,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     const renderer = new THREE.WebGLRenderer({ canvas: preview, antialias: true, alpha: true });
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
-    camera.position.z = 5;
+    camera.position.z = 100;
 
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
     scene.add(light);
@@ -91,22 +91,45 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	skinMat.map.minFilter = THREE.NearestFilter;
 
 	// Helper to make cube parts
-	function makePart(w, h, d, x, y, z) {
-	  const geom = new THREE.BoxGeometry(w, h, d);
+	function makePart(l, w, h, x, y, z) {
+	  const geom = new THREE.BoxGeometry(l, h, w);
 	  const mesh = new THREE.Mesh(geom, skinMat);
 	  mesh.position.set(x, y, z);
 	  return mesh;
 	}
 
 	// Create main parts (sizes roughly Minecraft-proportional)
-	const head = makePart(1, 1, 1, 0, 1.5, 0);
-	const torso = makePart(1, 1.5, 0.5, 0, 0.25, 0);
-	const leftArm = makePart(0.4, 1.4, 0.4, -0.7, 0.6, 0);
-	const rightArm = makePart(0.4, 1.4, 0.4, 0.7, 0.6, 0);
-	const leftLeg = makePart(0.4, 1.4, 0.4, -0.25, -1.2, 0);
-	const rightLeg = makePart(0.4, 1.4, 0.4, 0.25, -1.2, 0);
 
-	body.add(head, torso, leftArm, rightArm, leftLeg, rightLeg);
+
+  // makePart (length, height, width, x, y, z)
+  // x is to left/right
+  // y is up/down
+  // z is forward/back
+  
+  // Head
+	const head = makePart(8, 8, 10, 0, 14, 0);
+
+  // Torso
+	const torso = makePart(12, 4, 18, 0, 0, 0);
+
+  // Right Arm
+	const urArm = makePart(6, 4, 8, 9, 5, 0);
+	const lrArm = makePart(4, 4, 10, 9, -4, 0);
+
+  // Left Arm
+  const ulArm = makePart(6, 4, 8, -9, 5, 0);
+  const llArm = makePart(4, 4, 10, -9, -4, 0);
+
+  // Left Leg
+	const ulLeg = makePart(6, 4, 8, -3, -13, 0);
+	const llLeg = makePart(4, 4, 12, -3, -23, 0);
+
+  // Right Leg
+  const urLeg = makePart(6, 4, 8, 3, -13, 0);
+  const lrLeg = makePart(4, 4, 12, 3, -23, 0);
+
+	//body.add(head, torso, leftArm, rightArm, leftLeg, rightLeg);
+  body.add(head, torso, urArm, lrArm, ulArm, llArm, ulLeg, llLeg, urLeg, lrLeg);
 	scene.add(body);
 
 
@@ -132,7 +155,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       controls.enablePan = false;          // disable dragging the scene around
       controls.target.set(0, 0.5, 0);      // look at character
       controls.minDistance = 2;            // zoom limits
-      controls.maxDistance = 10;
+      controls.maxDistance = 1000;
 
       // Animation loop
       function animate() {
